@@ -1,0 +1,6 @@
+var match = Regex.Match(
+    message,
+    @"([A-Za-z]:\\(?:[^\\/:*?""<>|\r\n]+\\)*[^\\/:*?""<>|\r\n]+)|((?:\/[^\/\0]+)+)"
+);
+
+string? filePath = match.Success ? match.Value : null;
