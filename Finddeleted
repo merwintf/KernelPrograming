@@ -1,0 +1,49 @@
+cat > inspect_delete.sh <<'EOF'
+#!/bin/bash
+
+BINLOG_FILE="$1"
+DB_NAME="$2"
+TABLE_NAME="$3"
+
+if [ -z "$BINLOG_FILE" ] || [ -z "$DB_NAME" ] || [ -z "$TABLE_NAME" ]; then
+  echo "Usage: ./inspect_delete.sh mysql-bin.000123 your_db your_table"
+  exit 1
+fi
+
+OUT_FILE="decoded_${BINLOG_FILE}.txt"
+RESULT_FILE="delete_matches_${DB_NAME}_${TABLE_NAME}.txt"
+
+echo "Decoding binlog..."
+mysqlbinlog \
+  --base64-output=DECODE-ROWS \
+  --verbose \
+  --verbose \
+  "$BINLOG_FILE" > "$OUT_FILE"
+
+echo "Searching DELETEs..."
+grep -i -B120 -A220 "DELETE FROM \`$DB_NAME\`.\`$TABLE_NAME\`" "$OUT_FILE" > "$RESULT_FILE"
+
+echo
+echo "===== MATCHES ====="
+cat "$RESULT_FILE"
+
+echo
+echo "===== POSSIBLE USER / SESSION INFO NEAR MATCH ====="
+grep -iE "user|host|thread|server id|xid|gtid|use \`|SET TIMESTAMP|DELETE FROM" "$RESULT_FILE"
+
+echo
+echo "Saved decoded binlog:"
+echo "$OUT_FILE"
+
+echo
+echo "Saved delete matches:"
+echo "$RESULT_FILE"
+
+echo
+echo "IMPORTANT:"
+echo "Binlog usually tells what was deleted and when."
+echo "It may NOT show the real application user."
+echo "If it only shows the DB user, match the timestamp with app/API/nginx logs."
+EOF
+
+chmod +x inspect_delete.sh
