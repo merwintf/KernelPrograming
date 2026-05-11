@@ -1,0 +1,4 @@
+for f in mysql-bin.*; do
+  mysqlbinlog --base64-output=DECODE-ROWS -vv "$f" \
+    | grep -qi "DELETE FROM \`your_db\`.\`your_table\`" && echo "$f"
+done
