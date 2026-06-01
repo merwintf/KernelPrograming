@@ -1,0 +1,45 @@
+private void EnsureWindowInsideMonitor(IntPtr monitorHandle)
+{
+    var info = new MONITORINFO
+    {
+        cbSize = Marshal.SizeOf<MONITORINFO>()
+    };
+
+    if (!GetMonitorInfo(monitorHandle, ref info))
+        return;
+
+    var source = PresentationSource.FromVisual(this);
+    if (source?.CompositionTarget == null)
+        return;
+
+    var transform = source.CompositionTarget.TransformFromDevice;
+
+    Point topLeft = transform.Transform(
+        new Point(info.rcWork.Left, info.rcWork.Top));
+
+    Point bottomRight = transform.Transform(
+        new Point(info.rcWork.Right, info.rcWork.Bottom));
+
+    double screenLeft = topLeft.X;
+    double screenTop = topLeft.Y;
+    double screenRight = bottomRight.X;
+    double screenBottom = bottomRight.Y;
+
+    if (Width > screenRight - screenLeft)
+        Width = screenRight - screenLeft;
+
+    if (Height > screenBottom - screenTop)
+        Height = screenBottom - screenTop;
+
+    if (Left < screenLeft)
+        Left = screenLeft;
+
+    if (Top < screenTop)
+        Top = screenTop;
+
+    if (Left + Width > screenRight)
+        Left = screenRight - Width;
+
+    if (Top + Height > screenBottom)
+        Top = screenBottom - Height;
+}
