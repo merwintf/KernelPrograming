@@ -1,0 +1,35 @@
+private void EnsureWindowInsideMonitor(IntPtr monitorHandle)
+{
+    var info = new MONITORINFO
+    {
+        cbSize = Marshal.SizeOf<MONITORINFO>()
+    };
+
+    if (!GetMonitorInfo(monitorHandle, ref info))
+        return;
+
+    double screenLeft = info.rcWork.Left;
+    double screenTop = info.rcWork.Top;
+    double screenRight = info.rcWork.Right;
+    double screenBottom = info.rcWork.Bottom;
+
+    // Resize only if window is bigger than screen
+    if (Width > screenRight - screenLeft)
+        Width = screenRight - screenLeft;
+
+    if (Height > screenBottom - screenTop)
+        Height = screenBottom - screenTop;
+
+    // Move only if outside bounds
+    if (Left < screenLeft)
+        Left = screenLeft;
+
+    if (Top < screenTop)
+        Top = screenTop;
+
+    if (Left + Width > screenRight)
+        Left = screenRight - Width;
+
+    if (Top + Height > screenBottom)
+        Top = screenBottom - Height;
+}
